@@ -1,6 +1,6 @@
 {
   "name": "fastify-toolset",
-  "version": "0.0.1-beta.0",
+  "version": "0.0.1",
   "repository": "git@github.com:dzek69/fastify-toolset.git",
   "author": "Jacek Nowacki",
   "license": "MIT",
@@ -29,9 +29,10 @@
   "module": "./esm/index.js",
   "type": "module",
   "dependencies": {
-    "better-custom-error": "^4.1.1",
+    "better-custom-error": "^4.1.2",
     "chalk": "^4.1.2",
-    "fastify": "^3.20.1"
+    "fastify": "^3.20.1",
+    "http-status-codes": "^2.1.4"
   },
   "devDependencies": {
     "@babel/core": "^7.12.10",
