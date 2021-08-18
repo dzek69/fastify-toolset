@@ -18,6 +18,11 @@ interface ErrorResponse {
     errorMessageRaw?: string;
 }
 
+type ValidationError = {
+    validation: unknown[];
+    validationContext: string;
+} & Error;
+
 // eslint-disable-next-line max-statements
 const handler: Handler = (error, request, reply) => {
     const e = error as CustomError<{publicMessage: string}>;
@@ -49,6 +54,20 @@ const handler: Handler = (error, request, reply) => {
                 response.errorMessage = e.message;
             }
 
+            knownError = true;
+        }
+
+        if (!knownError && (error as ValidationError).validationContext) {
+            // This is fastify validation error // @TODO improve detection
+            // So we return 400 and message, because it's safe (I hope)
+
+            // eslint-disable-next-line @typescript-eslint/no-floating-promises
+            reply.status(errorToCodeMap.get(errors.BadRequest)!.status);
+            response.errorCode = errorToCodeMap.get(errors.BadRequest)!.code;
+
+            if (e.message) {
+                response.errorMessage = e.message;
+            }
             knownError = true;
         }
 

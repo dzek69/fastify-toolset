@@ -1,5 +1,7 @@
 import fastify from "fastify";
-import { consoleLogger, errorHandler } from "./index.js";
+import type { FastifySchema, RequestGenericInterface, RouteHandler } from "fastify";
+
+import { consoleLogger, errorHandler, validationCompiler } from "./index.js";
 
 import type { ConsoleLoggerRequestDecorator, ErrorHandlerInstanceDecorator } from "./index.js";
 
@@ -14,6 +16,7 @@ declare module "fastify" {
     const app = fastify();
     consoleLogger(app);
     errorHandler(app);
+    validationCompiler(app);
 
     // eslint-disable-next-line @typescript-eslint/require-await
     app.get("/", async () => {
@@ -35,6 +38,43 @@ declare module "fastify" {
             publicMessage: "hi there",
         });
     });
+
+    const configTestSchema: FastifySchema = {
+        querystring: {
+            $isUrl: true,
+            type: "object",
+            required: ["relay"],
+            properties: {
+                relay: { type: "number" },
+            },
+        },
+        body: {
+            type: "object",
+            required: ["relay"],
+            properties: {
+                relay: { type: "number" },
+            },
+        },
+    };
+
+    interface Params {
+        relay: number;
+    }
+
+    interface Req extends RequestGenericInterface {
+        Querystring: Params;
+        Body: Params;
+    }
+
+    // send relay in url - it should be a number
+    // send relay in body - it should crash on string
+    const configTestHandler: RouteHandler<Req> = async (req, res) => ({
+        error: false,
+        typeofQS: typeof req.query.relay,
+        typeofBody: typeof req.body.relay,
+    });
+
+    app.post("/config-test", { schema: configTestSchema }, configTestHandler);
     // eslint-disable-next-line @typescript-eslint/no-magic-numbers
     return app.listen(16073, "0.0.0.0");
 })().catch(e => {

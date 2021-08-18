@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 (nothing yet)
 
+## [0.1.0] - 2021-08-18
+### Added
+- validationCompiler
+### Changed
+- errorHandler handles schema validation messages automatically
+### Dev
+- deps upgrade
+
 ## [0.0.1] - 2021-08-14
 ### Added
 - first version

@@ -919,10 +919,10 @@
   resolved "https://registry.npmjs.org/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@dzek69/eslint-config-base@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.npmjs.org/@dzek69/eslint-config-base/-/eslint-config-base-2.0.0.tgz#1116d9d9b41a5d64b3695256a9733f14bceec8c0"
-  integrity sha512-TaPVQ5i3K5GtJxhsS6HMO+KyaKKJGI+6TG0kuCzqPt6MrcwwtWlbLbWdMG6UnSZ3J8sUTT6A57JJmYDffeT6JQ==
+"@dzek69/eslint-config-base@^2.1.0":
+  version "2.1.0"
+  resolved "https://registry.npmjs.org/@dzek69/eslint-config-base/-/eslint-config-base-2.1.0.tgz#ea9c6e8f4136f7fb2b2d6901f34a6607ba225dde"
+  integrity sha512-X/RMD3bLyY9mLkd+c6BncFPSuIOZUsWBdtvTwT+AdZY0In5bo+5SxOCxAMApQrgcVECYxqYOmNNyX6sAZTDIOA==
 
 "@dzek69/eslint-config-typescript@^0.4.0":
   version "0.4.0"
@@ -2246,7 +2246,7 @@ eslint-visitor-keys@^2.0.0:
   resolved "https://registry.npmjs.org/eslint-visitor-keys/-/eslint-visitor-keys-2.1.0.tgz#f65328259305927392c938ed44eb0a5c9b2bd303"
   integrity sha512-0rSmRBzXgDzIsD6mGdJgevzgezI534Cer5L/vyMX0kHzT/jiB43jRhd9YUlMGYLQy2zprNmoT8qasCGtY+QaKw==
 
-eslint@^7.14.0:
+eslint@^7.32.0:
   version "7.32.0"
   resolved "https://registry.npmjs.org/eslint/-/eslint-7.32.0.tgz#c6d328a14be3fb08c8d1d21e12c02fdb7a2a812d"
   integrity sha512-VHZ8gX+EDfz+97jGcgyGCyRia/dPOd6Xh9yPv8Bl1+SoaIwD+a/vlrOmGRUyOYu7MwUhc7CxqeaDZU13S4+EpA==
