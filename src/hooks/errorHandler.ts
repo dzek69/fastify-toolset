@@ -33,6 +33,10 @@ const handler: Handler = (error, request, reply) => {
         errorDetails: null,
     };
 
+    console.error("Handling error", error);
+
+    // @TODO pass original error somewhere for better logging purposes
+
     reply.status(StatusCodes.INTERNAL_SERVER_ERROR); // eslint-disable-line @typescript-eslint/no-floating-promises
 
     const copyDetails = process.env.NODE_ENV === "development";
@@ -87,6 +91,7 @@ const handler: Handler = (error, request, reply) => {
             };
         }
     }
+    // @TODO handle situation when error is not instance of error?
 
     reply.send(response); // eslint-disable-line @typescript-eslint/no-floating-promises
 };
