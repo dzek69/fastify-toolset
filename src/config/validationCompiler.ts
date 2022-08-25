@@ -1,4 +1,5 @@
 import Ajv from "ajv";
+
 import type { FastifyInstance } from "fastify";
 
 // @TODO review options: https://ajv.js.org/options.html
@@ -19,7 +20,7 @@ const generalAjv = new Ajv({
     coerceTypes: false,
 });
 
-const theValidationCompiler = ({ schema }: { schema: { $isUrl?: boolean }}) => {
+const theValidationCompiler = ({ schema }: { schema: { $isUrl?: boolean } }) => {
     if (schema.$isUrl) {
         return urlParamsAjv.compile(schema);
     }

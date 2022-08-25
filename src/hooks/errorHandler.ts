@@ -1,6 +1,8 @@
 import { StatusCodes } from "http-status-codes";
+
 import type { FastifyInstance } from "fastify";
 import type { CustomError } from "better-custom-error";
+import type { ErrorShape } from "../errors/errors.js";
 
 import { errors, errorToCodeMap } from "../errors/errors.js";
 
@@ -25,7 +27,7 @@ type ValidationError = {
 
 // eslint-disable-next-line max-statements
 const handler: Handler = (error, request, reply) => {
-    const e = error as CustomError<{publicMessage: string}>;
+    const e = error as CustomError<ErrorShape>;
     const response: ErrorResponse = {
         error: true,
         errorCode: "ERR_UNKNOWN_ERROR",
@@ -77,6 +79,10 @@ const handler: Handler = (error, request, reply) => {
 
         if (e.details?.publicMessage) {
             response.errorMessage = e.details.publicMessage;
+        }
+
+        if (e.details?.errorCode) {
+            response.errorCode = e.details.errorCode;
         }
 
         if (copyDetails) {

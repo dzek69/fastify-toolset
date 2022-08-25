@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 (nothing yet)
 
+## [0.1.2] - 2022-08-25
+### Added
+- Allow defining custom `errorCode` field
+
 ## [0.1.1] - 2021-08-23
 ### Added
 - Too many requests error

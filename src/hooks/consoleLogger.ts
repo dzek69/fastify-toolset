@@ -1,5 +1,6 @@
-import type { FastifyInstance, onResponseHookHandler, preHandlerHookHandler } from "fastify";
 import chalk from "chalk";
+
+import type { FastifyInstance, onResponseHookHandler, preHandlerHookHandler } from "fastify";
 
 interface ConsoleLoggerRequestDecorator {
     $requestId: string;

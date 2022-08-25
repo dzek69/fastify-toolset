@@ -1,5 +1,6 @@
 import { createError } from "better-custom-error";
 import { getReasonPhrase, StatusCodes } from "http-status-codes";
+
 import type { CustomErrorConstructor } from "better-custom-error";
 
 import { snakeCaseAllCaps } from "../utils/index.js";
@@ -7,7 +8,9 @@ import { snakeCaseAllCaps } from "../utils/index.js";
 interface ErrorShape {
     [key: string]: unknown;
     publicMessage: string;
+    errorCode?: string;
 }
+
 interface ErrorCodes {
     code: string;
     status: number;
@@ -59,4 +62,8 @@ export {
 
     errors,
     errorToCodeMap,
+};
+
+export type {
+    ErrorShape,
 };

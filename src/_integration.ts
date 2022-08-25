@@ -1,9 +1,9 @@
 import fastify from "fastify";
+
 import type { FastifySchema, RequestGenericInterface, RouteHandler } from "fastify";
+import type { ConsoleLoggerRequestDecorator, ErrorHandlerInstanceDecorator } from "./index.js";
 
 import { consoleLogger, errorHandler, validationCompiler } from "./index.js";
-
-import type { ConsoleLoggerRequestDecorator, ErrorHandlerInstanceDecorator } from "./index.js";
 
 console.info("BOOT");
 
@@ -78,7 +78,6 @@ declare module "fastify" {
     // eslint-disable-next-line @typescript-eslint/no-magic-numbers
     return app.listen(16073, "0.0.0.0");
 })().catch(e => {
-    throw e;
+    throw e as Error;
 });
 
-export {};

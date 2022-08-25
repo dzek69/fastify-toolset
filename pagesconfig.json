@@ -1,13 +1,9 @@
 {
-    "groups": [
+    "pages": [
         {
-            "title": "Tutorials",
-            "pages": [
-                {
-                    "title": "Test",
-                    "source": "./tutorials/Test.md"
-                }
-            ]
+            "title": "Test",
+            "source": "./tutorials/Test.md"
         }
-    ]
+    ],
+    "source": "tutorials"
 }
