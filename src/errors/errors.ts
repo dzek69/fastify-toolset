@@ -7,7 +7,7 @@ import { snakeCaseAllCaps } from "../utils/index.js";
 
 interface ErrorShape {
     [key: string]: unknown;
-    publicMessage: string;
+    publicMessage?: string;
     errorCode?: string;
 }
 
