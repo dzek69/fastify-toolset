@@ -26,6 +26,7 @@ const Unauthorized = createError<ErrorShape>("UnauthorizedError", ClientError);
 const Forbidden = createError<ErrorShape>("ForbiddenError", ClientError);
 const NotFound = createError<ErrorShape>("NotFoundError", ClientError);
 const TooManyRequests = createError<ErrorShape>("TooManyRequests", ClientError);
+const Gone = createError<ErrorShape>("Gone", ClientError);
 
 const InternalServerError = createError<ErrorShape>("InternalServerError", ServerError);
 
@@ -41,6 +42,7 @@ const errorToCodeMap = new Map<CustomErrorConstructor<ErrorShape>, ErrorCodes>([
     [Forbidden, getErrorCodes(StatusCodes.FORBIDDEN)],
     [NotFound, getErrorCodes(StatusCodes.NOT_FOUND)],
     [TooManyRequests, getErrorCodes(StatusCodes.TOO_MANY_REQUESTS)],
+    [Gone, getErrorCodes(StatusCodes.GONE)],
 
     [InternalServerError, getErrorCodes(StatusCodes.INTERNAL_SERVER_ERROR)],
 ]);
@@ -51,6 +53,7 @@ const errors = {
     Forbidden,
     NotFound,
     TooManyRequests,
+    Gone,
 
     InternalServerError,
 };
