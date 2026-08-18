@@ -1,16 +1,27 @@
 /.idea/
+/.claude/
 /build-scripts/
 /test/
 
-/babel.config.js
+# `src` is shipped for source maps, but the dev-only bits are not part of the build
+/src/**/*.spec.ts
+/src/__test/
+/src/_integration*.ts
+
 /jest.config.cjs
 /yarn.lock
+/pnpm-lock.yaml
+/pnpm-workspace.yaml
 /*.tgz
 /*.log
 /.yarnclean
 /nodemon.json
 /.editorconfig
 /tsconfig.*
-/.eslintrc.json
 
 /pagesconfig.json
+/eslint.config.mjs
+/typedoc.mjs
+/.prettierignore
+/.prettierrc.json
+/.husky

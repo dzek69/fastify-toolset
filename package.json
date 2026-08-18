@@ -1,26 +1,34 @@
 {
   "name": "fastify-toolset",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "repository": "git@github.com:dzek69/fastify-toolset.git",
   "author": "Jacek Nowacki",
   "license": "MIT",
   "scripts": {
     "test": "NODE_ENV=test jest",
-    "docs": "typedoc src/index.ts --out docs --includeVersion --pluginPages ./pagesconfig.json",
-    "compile": "yarn compile:esm && yarn compile:cjs",
+    "docs": "typedoc src/index.ts --skipErrorChecking --out docs --includeVersion",
+    "compile": "pnpm run compile:esm && pnpm run compile:cjs",
     "compile:esm": "rm -rf esm && tsc --project tsconfig.esm.json && node ./build-scripts/compile.esm.after.mjs",
     "compile:cjs": "rm -rf dist && tsc --project tsconfig.cjs.json && node ./build-scripts/compile.cjs.after.mjs",
-    "typecheck": "tsc --noEmit",
-    "lint": "eslint src --ext .ts,.tsx,.js,.jsx,.mjs",
-    "lint:fix": "yarn lint --fix",
-    "prepack": "yarn compile",
-    "prepublishOnly": "yarn audit && yarn lint && yarn test && yarn docs",
+    "typecheck": "pnpm run typecheck:fastify3 && pnpm run typecheck:fastify5",
+    "typecheck:fastify3": "tsc --noEmit",
+    "typecheck:fastify5": "tsc --noEmit --project tsconfig.fastify5.json",
+    "lint": "ezlint src",
+    "lint:fix": "pnpm run lint --fix",
+    "prepack": "pnpm run compile",
+    "prepublishOnly": "pnpm audit --prod && pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run docs",
     "start:dev": "nodemon",
-    "start:dev:compatibility": "TS_NODE_FILES=true yarn start:dev"
+    "start:dev:fastify5": "INTEGRATION_ENTRY=_integration5 nodemon",
+    "start:dev:compatibility": "TS_NODE_FILES=true pnpm run start:dev",
+    "prepare": "husky install",
+    "updates": "pnpm dlx npm-check-updates --dep prod",
+    "updates:dev": "pnpm dlx npm-check-updates --dep dev",
+    "updates:all": "pnpm dlx npm-check-updates"
   },
   "exports": {
     ".": {
       "require": "./dist/index.js",
+      "types": "./esm/index.d.ts",
       "default": "./esm/index.js"
     }
   },
@@ -29,43 +37,56 @@
   "module": "./esm/index.js",
   "type": "module",
   "dependencies": {
-    "ajv": "^6.12.6",
-    "better-custom-error": "^4.1.2",
+    "@ezez/errors": "^6.0.2",
+    "ajv": "^8.17.1",
     "chalk": "^4.1.2",
-    "fastify": "^3.20.1",
-    "http-status-codes": "^2.1.4"
+    "http-status-codes": "^2.3.0"
+  },
+  "peerDependencies": {
+    "fastify": "^3.29.5 || ^4.0.0 || ^5.0.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.12.10",
-    "@babel/preset-env": "^7.12.11",
-    "@babel/preset-typescript": "^7.12.7",
-    "@dzek69/eslint-config-base": "^2.2.0",
-    "@dzek69/eslint-config-typescript": "^1.0.1",
-    "@types/jest": "^26.0.23",
-    "@typescript-eslint/eslint-plugin": "^5.30.3",
-    "@typescript-eslint/parser": "^5.30.3",
+    "@babel/core": "^7.26.0",
+    "@babel/preset-env": "^7.26.0",
+    "@babel/preset-typescript": "^7.26.0",
+    "@ezez/eslint": "^0.3.0",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.20.1",
     "babel-plugin-module-extension": "^0.1.3",
-    "eslint": "^8.18.0",
-    "fs-extra": "^9.0.1",
-    "husky": "^7.0.4",
-    "jest": "^27.5.1",
+    "fastify": "^3.29.5",
+    "fastify5": "npm:fastify@^5.12.0",
+    "fs-extra": "^11.3.0",
+    "husky": "^8.0.3",
+    "jest": "^29.7.0",
     "must": "^0.13.4",
-    "nodemon": "^2.0.19",
-    "ts-node": "^9.0.0",
-    "typedoc": "^0.23.8",
-    "typescript": "^4.7.4",
-    "eslint-plugin-import": "^2.26.0",
-    "@dzek69/eslint-config-import": "^1.0.0",
-    "@dzek69/eslint-config-import-typescript": "^1.0.0",
-    "@knodes/typedoc-plugin-pages": "^0.23.1"
+    "nodemon": "^3.1.9",
+    "prettier": "^3.4.2",
+    "resolve-tspaths": "^0.8.23",
+    "ts-node": "^10.9.2",
+    "typedoc": "0.27.6",
+    "typescript": "^5.7.3"
+  },
+  "pnpm": {
+    "overrides": {
+      "ajv@6": "^6.15.0",
+      "brace-expansion@1": "^1.1.18",
+      "brace-expansion@2": "^2.0.2",
+      "braces@<3.0.3": "^3.0.3",
+      "cookie@<0.7.0": "^0.7.2",
+      "cross-spawn@7": "^7.0.6",
+      "diff@4": "^4.0.4",
+      "js-yaml@3": "^3.15.1",
+      "micromatch@4": "^4.0.8",
+      "picomatch@2": "^2.3.2"
+    }
   },
   "husky": {
     "hooks": {
-      "pre-push": "yarn prepublishOnly && yarn compile"
+      "pre-push": "pnpm run prepublishOnly && pnpm run compile"
     }
   },
   "libraryTemplate": {
-    "version": "3.5.2",
+    "version": "3.14.0",
     "language": "typescript",
     "fixDefaultForCommonJS": true,
     "jsx": false

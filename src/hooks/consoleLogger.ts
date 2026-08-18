@@ -1,10 +1,16 @@
 import chalk from "chalk";
 
-import type { FastifyInstance, onResponseHookHandler, preHandlerHookHandler } from "fastify";
+import type { FastifyRequest, FastifyInstance, onResponseHookHandler, preHandlerHookHandler } from "fastify";
 
 interface ConsoleLoggerRequestDecorator {
     $requestId: string;
 }
+
+/**
+ * The `FastifyRequest` module augmentation is opt-in for consumers of this library, so internally the decorated
+ * request type is built locally instead of relying on the augmentation being present.
+ */
+type DecoratedRequest = FastifyRequest & ConsoleLoggerRequestDecorator;
 
 let count = 0;
 const id = `r${Date.now()}${Math.random()}_`;
@@ -34,7 +40,7 @@ const colorStatus = (n: number) => {
 const preConsoleLogger: preHandlerHookHandler = (req, res, next) => {
     const reqId = `${id}${count++}`;
     // eslint-disable-next-line no-param-reassign
-    req.$requestId = reqId;
+    (req as DecoratedRequest).$requestId = reqId;
 
     console.info("<", reqId, new Date().toISOString(), req.ip, req.raw.method, req.raw.url);
     next();
@@ -43,7 +49,7 @@ const preConsoleLogger: preHandlerHookHandler = (req, res, next) => {
 const responseConsoleLogger: onResponseHookHandler = (req, res, next) => {
     const statusCode = colorStatus(res.raw.statusCode);
 
-    console.info(">", req.$requestId, new Date().toISOString(), statusCode);
+    console.info(">", (req as DecoratedRequest).$requestId, new Date().toISOString(), statusCode);
     next();
 };
 

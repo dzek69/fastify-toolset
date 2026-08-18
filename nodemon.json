@@ -1,6 +1,6 @@
 {
     "watch": ["src"],
     "ext": "ts,json",
-    "ignore": ["src/**/*.spec.ts"],
-    "exec": "node --loader ts-node/esm ./src/_integration.ts"
+    "ignore": ["src/**/*.spec.ts", "src/__test/**"],
+    "exec": "node --loader ts-node/esm ./src/${INTEGRATION_ENTRY:-_integration}.ts"
 }

@@ -1,7 +1,7 @@
 import { StatusCodes } from "http-status-codes";
 
 import type { FastifyInstance } from "fastify";
-import type { CustomError } from "better-custom-error";
+import type { CustomError } from "@ezez/errors";
 import type { ErrorShape } from "../errors/errors.js";
 
 import { errors, errorToCodeMap } from "../errors/errors.js";
@@ -21,9 +21,22 @@ interface ErrorResponse {
 }
 
 type ValidationError = {
-    validation: unknown[];
-    validationContext: string;
+    code?: string;
+    validation?: unknown[];
+    validationContext?: string;
 } & Error;
+
+/**
+ * Detects fastify's own schema validation errors.
+ *
+ * fastify 3 only decorates the error with `validation` + `validationContext`, fastify 4 and 5 additionally set
+ * a stable `code`, so all three are checked to stay version-agnostic.
+ */
+const isValidationError = (error: ValidationError) => {
+    return error.code === "FST_ERR_VALIDATION"
+        || Array.isArray(error.validation)
+        || Boolean(error.validationContext);
+};
 
 // eslint-disable-next-line max-statements
 const handler: Handler = (error, request, reply) => {
@@ -63,8 +76,8 @@ const handler: Handler = (error, request, reply) => {
             knownError = true;
         }
 
-        if (!knownError && (error as ValidationError).validationContext) {
-            // This is fastify validation error // @TODO improve detection
+        if (!knownError && isValidationError(error)) {
+            // This is fastify validation error
             // So we return 400 and message, because it's safe (I hope)
 
             // eslint-disable-next-line @typescript-eslint/no-floating-promises

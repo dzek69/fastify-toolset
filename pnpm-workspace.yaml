@@ -1,0 +1,14 @@
+# pnpm >= 10 reads `overrides` from here (not from package.json).
+# All of these force transitive dev dependencies (jest / eslint / ts-node toolchains)
+# onto patched versions - see `pnpm audit`.
+overrides:
+  ajv@6: ^6.15.0
+  brace-expansion@1: ^1.1.18
+  brace-expansion@2: ^2.1.4
+  braces@3: ^3.0.3
+  cookie@<0.7.0: ^0.7.2
+  cross-spawn@7: ^7.0.6
+  diff@4: ^4.0.4
+  js-yaml@3: ^3.15.1
+  micromatch@4: ^4.0.8
+  picomatch@2: ^2.3.2
