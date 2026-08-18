@@ -40,6 +40,9 @@ const isValidationError = (error: ValidationError) => {
 
 // eslint-disable-next-line max-statements
 const handler: Handler = (error, request, reply) => {
+    // anything can be thrown at an error handler, so the toolset's own error shape is only assumed here - every read
+    // off `e` below is optional-chained or truthiness checked, so a plain Error goes through it unharmed
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     const e = error as CustomError<ErrorShape>;
     const response: ErrorResponse = {
         error: true,
@@ -52,7 +55,7 @@ const handler: Handler = (error, request, reply) => {
 
     // @TODO pass original error somewhere for better logging purposes
 
-    reply.status(StatusCodes.INTERNAL_SERVER_ERROR); // eslint-disable-line @typescript-eslint/no-floating-promises
+    reply.status(StatusCodes.INTERNAL_SERVER_ERROR);
 
     const copyDetails = process.env.NODE_ENV === "development";
 
@@ -63,7 +66,6 @@ const handler: Handler = (error, request, reply) => {
                 continue;
             }
 
-            // eslint-disable-next-line @typescript-eslint/no-floating-promises
             reply.status(errorToCodeMap.get(err)!.status);
             response.errorCode = errorToCodeMap.get(err)!.code;
             // if it's a known custom error we can safely assume no private data is in the message
@@ -80,7 +82,6 @@ const handler: Handler = (error, request, reply) => {
             // This is fastify validation error
             // So we return 400 and message, because it's safe (I hope)
 
-            // eslint-disable-next-line @typescript-eslint/no-floating-promises
             reply.status(errorToCodeMap.get(errors.BadRequest)!.status);
             response.errorCode = errorToCodeMap.get(errors.BadRequest)!.code;
 
@@ -112,7 +113,7 @@ const handler: Handler = (error, request, reply) => {
     }
     // @TODO handle situation when error is not instance of error?
 
-    reply.send(response); // eslint-disable-line @typescript-eslint/no-floating-promises
+    reply.send(response);
 };
 
 const errorHandler = (app: FastifyInstance) => {

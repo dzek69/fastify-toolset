@@ -52,6 +52,8 @@ const generalAjv = new Ajv({
 const addDataPath = (validate: ValidateFunction): CompatValidator => {
     const compatValidate: CompatValidator = (data) => {
         const valid = validate(data);
+        // the loop below is what actually adds `dataPath`, so the widened type is only true from there on
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         const errors = (validate.errors ?? null) as CompatErrorObject[] | null;
 
         if (errors) {

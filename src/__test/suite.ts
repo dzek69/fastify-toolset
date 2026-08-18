@@ -28,6 +28,17 @@ interface ErrorBody {
 }
 
 /**
+ * Reads an injected response body as JSON.
+ *
+ * `JSON.parse` returns `any`, so telling TypeScript what came back is unavoidable - doing it here keeps that single
+ * unchecked step in one place instead of at every assertion.
+ *
+ * @param res - response returned by `app.inject`
+ */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+const parseBody = <T>(res: { body: string }) => JSON.parse(res.body) as T;
+
+/**
  * Every fastify major is a separate npm package here (`fastify` = v3, `fastify5` = v5), so their instance types are
  * structurally identical but nominally unrelated. The suite is written against the `fastify` types and the factory
  * result is cast once, here.
@@ -56,6 +67,8 @@ const bodySchema: FastifySchema = {
 };
 
 const buildApp = (createFastify: FastifyFactory) => {
+    // the one place where the version under test is bridged onto the `fastify` types - see FastifyFactory above
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     const app = createFastify() as FastifyInstance;
 
     consoleLogger(app);
@@ -117,8 +130,8 @@ const buildApp = (createFastify: FastifyFactory) => {
         });
     });
 
-    app.get("/throw/by-name/:name", async function throwByName(req) {
-        const { name: errorName } = req.params as { name: ErrorName };
+    app.get<{ Params: { name: ErrorName } }>("/throw/by-name/:name", async function throwByName(req) {
+        const errorName = req.params.name;
         // eslint-disable-next-line @typescript-eslint/no-invalid-this
         const ErrorClass = this.$errors[errorName];
 
@@ -128,13 +141,13 @@ const buildApp = (createFastify: FastifyFactory) => {
         throw new ErrorClass("thrown by name");
     });
 
-    app.get("/url-schema", { schema: urlSchema }, async (req) => ({
-        typeofRelay: typeof (req.query as { relay: unknown }).relay,
-        relay: (req.query as { relay: unknown }).relay,
+    app.get<{ Querystring: { relay: unknown } }>("/url-schema", { schema: urlSchema }, async (req) => ({
+        typeofRelay: typeof req.query.relay,
+        relay: req.query.relay,
     }));
 
-    app.post("/body-schema", { schema: bodySchema }, async (req) => ({
-        typeofRelay: typeof (req.body as { relay: unknown }).relay,
+    app.post<{ Body: { relay: unknown } }>("/body-schema", { schema: bodySchema }, async (req) => ({
+        typeofRelay: typeof req.body.relay,
     }));
 
     return app;
@@ -171,7 +184,7 @@ const defineToolsetSuite = (label: string, createFastify: FastifyFactory) => {
 
                 res.statusCode.must.equal(OK);
 
-                const body = JSON.parse(res.body) as { requestId: string };
+                const body = parseBody<{ requestId: string }>(res);
                 body.requestId.must.be.a.string();
                 body.requestId.length.must.be.gt(0);
 
@@ -190,8 +203,8 @@ const defineToolsetSuite = (label: string, createFastify: FastifyFactory) => {
                     app.inject({ method: "GET", url: "/ok" }),
                 ]);
 
-                const idOne = (JSON.parse(one.body) as { requestId: string }).requestId;
-                const idTwo = (JSON.parse(two.body) as { requestId: string }).requestId;
+                const idOne = parseBody<{ requestId: string }>(one).requestId;
+                const idTwo = parseBody<{ requestId: string }>(two).requestId;
 
                 idOne.must.not.equal(idTwo);
             });
@@ -203,7 +216,7 @@ const defineToolsetSuite = (label: string, createFastify: FastifyFactory) => {
 
                 res.statusCode.must.equal(NOT_FOUND);
 
-                const body = JSON.parse(res.body) as ErrorBody;
+                const body = parseBody<ErrorBody>(res);
                 body.error.must.be.true();
                 body.errorCode.must.equal("ERR_NOT_FOUND");
                 body.errorMessage.must.equal("Nothing here");
@@ -214,25 +227,27 @@ const defineToolsetSuite = (label: string, createFastify: FastifyFactory) => {
                 const res = await app.inject({ method: "GET", url: "/throw/no-public-message" });
 
                 res.statusCode.must.equal(410);
-                (JSON.parse(res.body) as ErrorBody).errorMessage.must.equal("this resource is gone");
+                parseBody<ErrorBody>(res).errorMessage.must.equal("this resource is gone");
             });
 
             it("allows overriding the error code", async () => {
                 const res = await app.inject({ method: "GET", url: "/throw/custom-code" });
 
                 res.statusCode.must.equal(BAD_REQUEST);
-                (JSON.parse(res.body) as ErrorBody).errorCode.must.equal("ERR_MY_OWN_CODE");
+                parseBody<ErrorBody>(res).errorCode.must.equal("ERR_MY_OWN_CODE");
             });
 
             it("builds multi word error codes without spaces", async () => {
                 const server = await app.inject({ method: "GET", url: "/throw/server" });
                 const tooMany = await app.inject({ method: "GET", url: "/throw/too-many" });
 
-                (JSON.parse(server.body) as ErrorBody).errorCode.must.equal("ERR_INTERNAL_SERVER_ERROR");
-                (JSON.parse(tooMany.body) as ErrorBody).errorCode.must.equal("ERR_TOO_MANY_REQUESTS");
+                parseBody<ErrorBody>(server).errorCode.must.equal("ERR_INTERNAL_SERVER_ERROR");
+                parseBody<ErrorBody>(tooMany).errorCode.must.equal("ERR_TOO_MANY_REQUESTS");
             });
 
             it("maps every error in $errors to its own status and code", async () => {
+                // `Object.keys` is typed `string[]` by design, and here the keys are known to be the `$errors` ones
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
                 const names = Object.keys(toolsetErrors) as ErrorName[];
 
                 names.length.must.equal(errorToCodeMap.size);
@@ -240,7 +255,7 @@ const defineToolsetSuite = (label: string, createFastify: FastifyFactory) => {
                 for (const errorName of names) {
                     const expected = errorToCodeMap.get(toolsetErrors[errorName])!;
                     const res = await app.inject({ method: "GET", url: `/throw/by-name/${errorName}` });
-                    const body = JSON.parse(res.body) as ErrorBody;
+                    const body = parseBody<ErrorBody>(res);
 
                     res.statusCode.must.equal(expected.status);
                     body.errorCode.must.equal(expected.code);
@@ -253,7 +268,7 @@ const defineToolsetSuite = (label: string, createFastify: FastifyFactory) => {
 
                 res.statusCode.must.equal(CONFLICT);
 
-                const body = JSON.parse(res.body) as ErrorBody;
+                const body = parseBody<ErrorBody>(res);
                 body.errorCode.must.equal("ERR_CONFLICT");
                 body.errorMessage.must.equal("That seat is taken");
             });
@@ -263,7 +278,7 @@ const defineToolsetSuite = (label: string, createFastify: FastifyFactory) => {
 
                 res.statusCode.must.equal(BAD_REQUEST);
 
-                const body = JSON.parse(res.body) as ErrorBody;
+                const body = parseBody<ErrorBody>(res);
                 body.errorCode.must.equal("ERR_BAD_REQUEST");
                 body.errorMessage.must.equal("body must have required property 'relay'");
             });
@@ -273,7 +288,7 @@ const defineToolsetSuite = (label: string, createFastify: FastifyFactory) => {
 
                 res.statusCode.must.equal(BAD_REQUEST);
 
-                const body = JSON.parse(res.body) as ErrorBody;
+                const body = parseBody<ErrorBody>(res);
                 body.errorCode.must.equal("ERR_BAD_REQUEST");
                 body.errorMessage.must.equal("body/relay must be number");
             });
@@ -283,7 +298,7 @@ const defineToolsetSuite = (label: string, createFastify: FastifyFactory) => {
 
                 res.statusCode.must.equal(SERVER_ERROR);
 
-                const body = JSON.parse(res.body) as ErrorBody;
+                const body = parseBody<ErrorBody>(res);
                 body.errorCode.must.equal("ERR_UNKNOWN_ERROR");
                 body.errorMessage.must.equal("<No message>");
                 res.body.must.not.contain("SECRET");
@@ -302,7 +317,7 @@ const defineToolsetSuite = (label: string, createFastify: FastifyFactory) => {
 
                 it("exposes the raw message and the stack", async () => {
                     const res = await app.inject({ method: "GET", url: "/throw/unknown" });
-                    const body = JSON.parse(res.body) as ErrorBody;
+                    const body = parseBody<ErrorBody>(res);
 
                     body.errorMessageRaw!.must.equal("SECRET internal message");
                     Boolean(body.errorDetails).must.be.true();
@@ -319,7 +334,7 @@ const defineToolsetSuite = (label: string, createFastify: FastifyFactory) => {
 
                 res.statusCode.must.equal(BAD_REQUEST);
 
-                const body = JSON.parse(res.body) as ErrorBody;
+                const body = parseBody<ErrorBody>(res);
                 body.errorCode.must.equal("ERR_BAD_REQUEST");
                 // the property path only shows up when Ajv 8 errors carry `dataPath` (fastify 3) /
                 // `instancePath` (fastify 4+)
@@ -334,7 +349,7 @@ const defineToolsetSuite = (label: string, createFastify: FastifyFactory) => {
 
                 res.statusCode.must.equal(OK);
 
-                const body = JSON.parse(res.body) as { typeofRelay: string; relay: number };
+                const body = parseBody<{ typeofRelay: string; relay: number }>(res);
                 body.typeofRelay.must.equal("number");
                 body.relay.must.equal(5);
             });
@@ -343,7 +358,7 @@ const defineToolsetSuite = (label: string, createFastify: FastifyFactory) => {
                 const res = await app.inject({ method: "GET", url: "/url-schema?relay=abc" });
 
                 res.statusCode.must.equal(BAD_REQUEST);
-                (JSON.parse(res.body) as ErrorBody).errorCode.must.equal("ERR_BAD_REQUEST");
+                parseBody<ErrorBody>(res).errorCode.must.equal("ERR_BAD_REQUEST");
             });
 
             it("rejects missing required url params", async () => {
@@ -357,7 +372,7 @@ const defineToolsetSuite = (label: string, createFastify: FastifyFactory) => {
                 const bad = await app.inject({ method: "POST", url: "/body-schema", payload: { relay: "5" } });
 
                 ok.statusCode.must.equal(OK);
-                (JSON.parse(ok.body) as { typeofRelay: string }).typeofRelay.must.equal("number");
+                parseBody<{ typeofRelay: string }>(ok).typeofRelay.must.equal("number");
 
                 bad.statusCode.must.equal(BAD_REQUEST);
             });

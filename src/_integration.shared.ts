@@ -65,8 +65,8 @@ const buildIntegrationApp = (app: FastifyInstance) => {
         };
     });
 
-    app.get("/status/:code", async (req, res) => {
-        const code = (req.params as { code: number }).code;
+    app.get<{ Params: { code: number } }>("/status/:code", async (req, res) => {
+        const code = req.params.code;
         res.status(code);
         return {
             error: false,

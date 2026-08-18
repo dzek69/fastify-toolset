@@ -12,6 +12,7 @@ console.info("BOOT (fastify 5)");
 (async () => {
     // the alias is a different package to TypeScript, so its instance type is structurally identical but nominally
     // unrelated to the `fastify` (v3) one this repo compiles against - hence the cast
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     const app = fastify5() as unknown as FastifyInstance;
     return startIntegrationApp(buildIntegrationApp(app));
 })().catch((e: unknown) => {

@@ -101,39 +101,49 @@ const getErrorCodes = (httpStatus: number): ErrorCodes => {
 
 type ErrorSet<T> = { [K in keyof T]: CustomErrorConstructor<ErrorShape> };
 
+type CodeEntry = [CustomErrorConstructor<ErrorShape>, ErrorCodes];
+
 /**
- * Builds one error constructor per entry of a status table.
+ * Builds one error constructor per entry of a status table, together with its code map entries.
+ *
+ * Both come out of the same loop on purpose - that is what makes it impossible to add an error without also giving it
+ * a status and a code.
  *
  * @param statuses - status table; the keys become both the `$errors` keys and the class names
  * @param parentError - error to inherit from, so `instanceof ClientError` / `instanceof ServerError` keeps working
  */
 const createErrorSet = <T extends { [key: string]: number }>(
     statuses: T, parentError: CustomErrorConstructor<ErrorShape>,
-): ErrorSet<T> => {
-    const set: { [key: string]: CustomErrorConstructor<ErrorShape> } = {};
+) => {
+    const record: { [key: string]: CustomErrorConstructor<ErrorShape> } = {};
+    const codes: CodeEntry[] = [];
 
-    for (const key of Object.keys(statuses)) {
-        set[key] = parentError.extend(key);
+    for (const [key, httpStatus] of Object.entries(statuses)) {
+        const ErrorClass = parentError.extend(key);
+
+        record[key] = ErrorClass;
+        codes.push([ErrorClass, getErrorCodes(httpStatus)]);
     }
 
-    return set as ErrorSet<T>;
+    // the loop fills the record key by key, so it can only be built as a plain object and narrowed to the table's keys
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    const set = record as ErrorSet<T>;
+
+    return { set, codes };
 };
+
+const clientErrors = createErrorSet(CLIENT_ERROR_STATUSES, ClientError);
+const serverErrors = createErrorSet(SERVER_ERROR_STATUSES, ServerError);
 
 const errors = {
-    ...createErrorSet(CLIENT_ERROR_STATUSES, ClientError),
-    ...createErrorSet(SERVER_ERROR_STATUSES, ServerError),
+    ...clientErrors.set,
+    ...serverErrors.set,
 };
 
-const allStatuses: { [key: string]: number | undefined } = {
-    ...CLIENT_ERROR_STATUSES,
-    ...SERVER_ERROR_STATUSES,
-};
-
-const errorToCodeMap = new Map<CustomErrorConstructor<ErrorShape>, ErrorCodes>(
-    (Object.keys(errors) as (keyof typeof errors)[]).map(
-        key => [errors[key], getErrorCodes(allStatuses[key]!)],
-    ),
-);
+const errorToCodeMap = new Map<CustomErrorConstructor<ErrorShape>, ErrorCodes>([
+    ...clientErrors.codes,
+    ...serverErrors.codes,
+]);
 
 export {
     HttpError,
